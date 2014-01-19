@@ -37,19 +37,21 @@ class SimpleCountdown extends \ContentElement
 
 
        /**
-        * Return if the countdown has expired
-        * Deactivate the ce if the countdown has expired
+        * Return if countdown has expired
+        * Deactivate the content element if countdown has expired
         * @return string
         */
        public function generate()
        {
 
+              $countdownExpired = false;
+
               $oneDay = 3600 * 24;
               if ($this->simple_countdown_tstamp + $oneDay - time() < 0)
               {
                      // Deactivate content element one day after event has expired
-                     $this->countdownExpired = true;
-                     $this->Database->prepare('UPDATE tl_content %s WHERE id=?')->set(array('invisible' => '1'))->execute($this->id);
+                     $countdownExpired = true;
+                     \Database::getInstance()->prepare('UPDATE tl_content %s WHERE id=?')->set(array('invisible' => '1'))->execute($this->id);
               }
 
               if (TL_MODE == 'BE')
@@ -64,7 +66,7 @@ class SimpleCountdown extends \ContentElement
               }
 
               // Return if countdown has expired
-              if ($this->countdownExpired)
+              if ($countdownExpired)
               {
                      return '';
               }
@@ -84,23 +86,12 @@ class SimpleCountdown extends \ContentElement
               {
                      $countdown = 0;
               }
+
               $days = ceil($countdown / (3600 * 24));
 
-              $this->Template->countdown = $this->splitString($days);
+              $this->Template->countdown = preg_split('//', $days, -1, PREG_SPLIT_NO_EMPTY);
               $this->Template->unit = ($days == 1 ? $GLOBALS['TL_LANG']['default']['simple_countdown']['day'][0] : $GLOBALS['TL_LANG']['default']['simple_countdown']['day'][1]);
               $this->Template->description = nl2br($this->simple_countdown_description);
        }
 
-
-       /**
-        * returns an array with the splitted string
-        * @param string
-        * @return array
-        */
-       protected function splitString($strCountdwn = "")
-       {
-
-              $arrCiphers = preg_split('//', $strCountdwn, -1, PREG_SPLIT_NO_EMPTY);
-              return $arrCiphers;
-       }
 }
